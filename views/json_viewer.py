@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QHBoxLayout, QPushButton, QTreeWidget, QWidget, QFileDialog,
-    QMessageBox, QLabel, QShortcut, QLineEdit, QTreeWidgetItem
+    QMessageBox, QLabel, QShortcut, QLineEdit, QTreeWidgetItem,QMenu
 )
 from PyQt5.QtGui import QFont, QIcon, QPixmap, QTransform, QColor, QDesktopServices, QKeySequence
 from PyQt5.QtCore import Qt, QTimer, QUrl
@@ -79,6 +79,9 @@ class JSONViewer(QMainWindow):
         self.rotation_timer = QTimer(self)
         self.rotation_timer.timeout.connect(self.rotate_icon)
         self.rotation_timer.start(60000)
+        #
+        self.tree_widget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.tree_widget.customContextMenuRequested.connect(self.show_context_menu)
 
     def search_tree(self):
 
@@ -101,7 +104,25 @@ class JSONViewer(QMainWindow):
         rotated_pixmap = self.auto_save_icon.pixmap(64, 64).transformed(transform)
         self.auto_save_label.setPixmap(rotated_pixmap)
 
+    def show_context_menu(self, position):
+        item = self.tree_widget.itemAt(position)
+        if item and not item.parent():  # Only show context menu for root items (no parent)
+            menu = QMenu(self)
+            delete_action = menu.addAction("Delete")
+            action = menu.exec_(self.tree_widget.viewport().mapToGlobal(position))
 
+            if action == delete_action:
+                self.delete_root_item(item)
+
+    def delete_root_item(self, item):
+        # Confirm deletion
+        confirm = QMessageBox.question(self, "Delete", f"Are you sure you want to delete '{item.text(0)}'?",
+                                       QMessageBox.Yes | QMessageBox.No)
+        if confirm == QMessageBox.Yes:
+            index = self.tree_widget.indexOfTopLevelItem(item)
+            if index != -1:
+                self.tree_widget.takeTopLevelItem(index)
+                del self.json_data[index]
 
     def load_json_file(self):
         self.json_data= load_json_file(self)
