@@ -25,7 +25,19 @@ def parse_json_tree(restaurant, tree_widget):
 
 
 def parse_json(key, value, parent):
-    if isinstance(value, dict):
+    if key == "open_time":
+        item = QTreeWidgetItem([key, "Array"])
+        item.setForeground(0, QColor("blue"))
+        parent.addChild(item)
+
+        if isinstance(value, list):
+            for i, v in enumerate(value):
+                parse_json(f"[{i}]", v, item)
+        else:
+
+            parse_json("[0]", value, item)
+
+    elif isinstance(value, dict):
         item = QTreeWidgetItem([key])
         parent.addChild(item)
         for k, v in value.items():
@@ -55,9 +67,7 @@ def parse_json(key, value, parent):
 
 
 def tree_to_dict(item):
-
     result = {}
-
     for i in range(item.childCount()):
         child = item.child(i)
         key = child.text(0)
@@ -73,7 +83,7 @@ def tree_to_dict(item):
                         array_data.append(tree_to_dict(array_child))
                     else:
                         array_data.append(convert_value(array_child.text(1)))
-                result[key] = array_data  #
+                result[key] = array_data
             else:
 
                 result[key] = tree_to_dict(child)

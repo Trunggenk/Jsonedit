@@ -106,13 +106,43 @@ class JSONViewer(QMainWindow):
 
     def show_context_menu(self, position):
         item = self.tree_widget.itemAt(position)
-        if item and not item.parent():  # Only show context menu for root items (no parent)
+        if item and not item.parent():
             menu = QMenu(self)
             delete_action = menu.addAction("Delete")
             action = menu.exec_(self.tree_widget.viewport().mapToGlobal(position))
 
             if action == delete_action:
                 self.delete_root_item(item)
+        if item:  # Check if an item is clicked
+            menu = QMenu(self)
+            if item.text(0) == "open_time":  # Check if the field is "open_time"
+                add_value_action = menu.addAction("Add Value")  # Add option to add value
+                action = menu.exec_(self.tree_widget.viewport().mapToGlobal(position))
+
+                if action == add_value_action:
+                    self.add_value_to_open_time(item)
+
+
+    def add_value_to_open_time(self, item):
+        current_value = item.text(1)
+
+
+        if current_value and current_value != "Array":
+            item.takeChildren()
+            current_value_list = [current_value]
+            item.setText(1, "Array")
+            item.setForeground(1, QColor("white"))
+
+            for value in current_value_list:
+                child_item = QTreeWidgetItem(["[0]", value])
+                child_item.setFlags(child_item.flags() | Qt.ItemIsEditable)
+                item.addChild(child_item        )
+
+        # Thêm giá trị mới vào mảng
+        new_value = "Enter new value"
+        new_child_item = QTreeWidgetItem([f"[{item.childCount()}]", new_value])
+        new_child_item.setFlags(new_child_item.flags() | Qt.ItemIsEditable)
+        item.addChild(new_child_item)
 
     def delete_root_item(self, item):
         # Confirm deletion
