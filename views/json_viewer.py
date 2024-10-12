@@ -11,6 +11,8 @@ from .utils import parse_json_tree, tree_to_dict
 from .web_window import WebWindow
 import json
 from datetime import datetime
+from PyQt5.QtWidgets import QCompleter
+
 
 class JSONViewer(QMainWindow):
     def __init__(self):
@@ -82,9 +84,14 @@ class JSONViewer(QMainWindow):
         #
         self.tree_widget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tree_widget.customContextMenuRequested.connect(self.show_context_menu)
+        #search
+        self.root_names = []
+        self.completer = QCompleter(self.root_names, self)
+        self.completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self.completer.setCompletionMode(QCompleter.PopupCompletion)
+        self.search_box.setCompleter(self.completer)
 
     def search_tree(self):
-
         search_text = self.search_box.text().lower()
 
         if search_text:
@@ -155,10 +162,16 @@ class JSONViewer(QMainWindow):
                 del self.json_data[index]
 
     def load_json_file(self):
-        self.json_data= load_json_file(self)
+        self.json_data = load_json_file(self)
         self.original_data = self.json_data.copy()
         if self.json_data:
             self.display_json_tree(self.json_data)
+            # Cập nhật root names cho completer
+            self.update_root_names()
+
+    def update_root_names(self):
+        self.root_names = [restaurant.get("name", "Unnamed Restaurant") for restaurant in self.json_data]
+        self.completer.model().setStringList(self.root_names)
 
     def display_json_tree(self, json_data):
         self.tree_widget.clear()
