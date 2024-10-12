@@ -74,7 +74,6 @@ def tree_to_dict(item):
         value = child.text(1)
 
         if child.childCount() > 0:
-
             if value == "Array" or value == "Empty Array":
                 array_data = []
                 for j in range(child.childCount()):
@@ -82,23 +81,24 @@ def tree_to_dict(item):
                     if array_child.childCount() > 0:
                         array_data.append(tree_to_dict(array_child))
                     else:
-                        array_data.append(convert_value(array_child.text(1)))
+                        array_data.append(convert_value(array_child.text(1), array_child.text(0)))
                 result[key] = array_data
             else:
-
                 result[key] = tree_to_dict(child)
         else:
-
-            result[key] = convert_value(value)
+            result[key] = convert_value(value, key)  
 
     return result
 
 
 
-def convert_value(value):
+
+def convert_value(value, key=None):
     if isinstance(value, str):
         value = value.replace("\n", " ")
 
+    if key == "name":
+        return value
 
     if value == "Empty Array":
         return []
@@ -109,13 +109,10 @@ def convert_value(value):
     elif value.lower() == "true":
         return True
     try:
-        # Thử chuyển thành float nếu có dấu chấm thập phân
         if '.' in value:
             return float(value)
-        # Nếu không, thử chuyển sang int
         return int(value)
     except ValueError:
-        # Nếu không chuyển đổi được thành số, giữ nguyên chuỗi
         return value
 
 
