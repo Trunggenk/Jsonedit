@@ -97,6 +97,12 @@ def convert_value(value, key=None):
     if isinstance(value, str):
         value = value.replace("\n", " ")
 
+    # Treat 'phone' as a string
+    if key == "phone":
+        if value == "No value" or value == "" or value == "null":
+            return ""
+        return str(value)
+
     if key == "name":
         return value
 
@@ -114,6 +120,7 @@ def convert_value(value, key=None):
         return int(value)
     except ValueError:
         return value
+
 
 
 
